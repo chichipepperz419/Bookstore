@@ -11,6 +11,10 @@ interface author {
         url: string;
         public_id: string;
     };
+    verificationToken : string;
+  verificationExpired : Date 
+  passwordResetToken : string;
+  passwordResetExpired : Date;
 }
 
 interface iauthor extends author, Document{}
@@ -40,6 +44,12 @@ const authorSchema: Schema<iauthor> = new Schema({
     image: {
         url: String,
         public_id : String
+    },
+    passwordResetToken: {
+        type: String,
+    },
+    passwordResetExpired: {
+        type: Date,
     },
 })
 

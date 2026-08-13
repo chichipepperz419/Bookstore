@@ -4,8 +4,8 @@ import AppError from "../utils/AppError.js"
 import bcrypt from "bcrypt"
 import cloudinary from '../configuration/cloudinary.js';
 import { getAll } from "./book.controllers.js";
-import { sendWelcomeEmail } from "../../services/Email.services.js";
-
+import { sendWelcomeEmail } from "../services/Email.services.js";
+import crypto from "crypto"
 
 export const signUp = async (
     req: Request,
@@ -66,7 +66,9 @@ export const signin = async(
         next(error)
     }
 }
+const verificationToken = crypto.randomBytes(32).toString("hex");
 
+const verificationExpired = new Date(Date.now() + 1000 * 60 * 5);
 export const Register = async (
     req: Request,
     res: Response,
@@ -79,16 +81,26 @@ export const Register = async (
         if (findExistingAuthor){
             throw new AppError(" Author already exist", 409) 
         }
+        const verificationToken = crypto.randomBytes(32).toString("hex");
+
+        const verificationExpired = new Date(Date.now() + 1000 * 60 * 5);
+
         const genSalt = await bcrypt.genSalt(10)
         const hashedPassword = await bcrypt.hash(password, genSalt)
 
         const RegisteredAuthor = await authorModel.create({
             name,
             email, 
-            password: hashedPassword 
+            password: hashedPassword,
+            verificationToken :  verificationToken,
+            verificationExpired :verificationExpired,
         
         });
-          await sendWelcomeEmail(email, name)
+          await sendWelcomeEmail(email, name , `${process.env.BASE_URL}/verify-email?token=${verificationToken}`).then(()=>{
+      console.log("Email sent successfully");
+    }).catch((error)=>{
+      console.log("Error sending email", error);
+    });
 
     return res.status(201).json({
         message: "successfully registered",
@@ -99,14 +111,6 @@ export const Register = async (
         next(error)
     }
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -149,28 +153,6 @@ export const updateAuthor = async (
     }
 }
 
-// export const getOneAuthor = async (
-//     req: Request,
-//     res: Response,
-//     next: NextFunction
-// )=> {
-//     try {
-//         const { id } = req.params
-//         const getOne = await authorModel.findById(id).populate ({
-//             path: "Books"
-//         })
-//         if (!getOne){
-//             throw new AppError ("One author must be gotten", 409)
-//         }
-//         return res.status(200).json({
-//             message: "one author Retrived",
-//             data: getOne
-//         })
-//     }catch (error){
-//         next (error)
-//     }
-// }
-
 
 
 export const getOneAuthor = async (
@@ -195,7 +177,6 @@ export const getOneAuthor = async (
     }
 }
 
-
 export const getAllAuthor = async (
     req: Request,
     res: Response,
@@ -215,4 +196,66 @@ export const getAllAuthor = async (
         })
     }
 }
+
+
+
+
+export const deleteAuthor = async ( 
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const { id } = req.params
+        const deletesAuthor = await authorModel.findByIdAndDelete(id)
+        if(!deletesAuthor){
+            throw new AppError ("Author not found", 404)
+        }
+        return res.status(200).json({
+            message: "Author deleted successfully",
+            data: deletesAuthor
+        })
+
+    }catch (error) {
+        next(error)
+    }
+};
+
+
+export const forgotPassword = async ( 
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const { email } = req.body
+        const author = await authorModel.findOne({ email })
+        if (!author) {
+        throw new AppError ("Author not found", 404)
+      }
+        //reset password token
+        const resetToken = crypto.randomBytes(32).toString("hex"); 
+        //3. Set the reset token and expiration time on the user document
+    const hashedResetToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+      author.passwordResetToken = hashedResetToken;
+      author.passwordResetExpired = new Date(Date.now() + 1000 * 60 * 10); // 10 minutes from now
+      await author.save();
+
+      const resetLink = `${process.env.BASE_URL}/reset-password?token=${resetToken}`;
+
+    }catch (error) {
+        next(error)
+    }
+}
+
+
+
+
+
+
+
 
