@@ -15,4 +15,8 @@ export const sendWelcomeEmail = async (email, name, verificationLink) => {
             .replace("{{ verificationLink }}", verificationLink),
     });
 };
+console.log(process.env.SMTP_HOST);
+console.log(process.env.SMTP_USER);
+console.log(process.env.SMTP_PORT);
+console.log(process.env.SMTP_PASS);
 //# sourceMappingURL=Email.services.js.map
