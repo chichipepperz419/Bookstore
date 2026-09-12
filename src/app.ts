@@ -1,6 +1,7 @@
 import express from "express";
 import authorRouter from "./routes/author.routes.js";
 import bookRouter from "./routes/book.routes.js";
+import userRouter from "./routes/user.routes.js";
 
 const app = express()
 
@@ -11,6 +12,7 @@ app.get("/", (req ,res)=> {
 })
 app.use("/author", authorRouter)
 app.use("/Books", bookRouter)
+app.use("/user", userRouter)
 //https://bookstore-1-wc5m.onrender.com
 
 

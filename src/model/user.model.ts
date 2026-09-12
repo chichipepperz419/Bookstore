@@ -8,6 +8,9 @@ interface user {
     verificationExpired: Date;
     passwordResetToken: string;
     passwordResetExpired: Date;
+    AreyouanAuthor: boolean;
+    role: "user" | "author"
+    //Books: mongoose.Types.ObjectId[]
 
 }
 interface Iuser extends user, Document {}
@@ -37,6 +40,15 @@ const userSchema = new mongoose.Schema<Iuser>({
     },
     passwordResetExpired: { 
         type: Date
+    },
+     AreyouanAuthor: { 
+        type: Boolean,
+    },
+    role: {
+        type: String,
+        enum: ["user", "author"],
+        default: "user"
+
     }
 })
 const userModel = mongoose.model<Iuser>("User", userSchema);

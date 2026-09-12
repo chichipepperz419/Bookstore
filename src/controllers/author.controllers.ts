@@ -141,7 +141,7 @@ export const updateAuthor = async (
         )
         if (!updatedAuthor){
             throw new AppError("update required", 400)
-        }
+        } 
         
         return res.status(200).json({
             message:"Update successfully done",

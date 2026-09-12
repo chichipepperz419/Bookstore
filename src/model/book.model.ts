@@ -11,8 +11,7 @@ interface Books {
         public_id : string
     },
     category: string,
-    status: string,
-    //default: string
+    status: string
 }
 
 interface Ibooks extends Books, Document{}
@@ -46,7 +45,7 @@ const BookSchema: Schema<Ibooks> = new Schema({
         type: String,
         required: true,
 
-    },
+    }
 
 })
 const bookModel = model <Ibooks>("Books", BookSchema)
